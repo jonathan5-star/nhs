@@ -4,7 +4,78 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scientific Calculator</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #1e1e1e;
+            font-family: Arial, sans-serif;
+        }
+
+        .calculator {
+            background: #2c2c2c;
+            padding: 20px;
+            border-radius: 14px;
+            width: min(100%, 360px);
+            max-width: 420px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+        }
+
+        #display {
+            width: 100%;
+            min-height: 60px;
+            font-size: 24px;
+            margin-bottom: 10px;
+            text-align: right;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: #111;
+            color: #fff;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+
+        button {
+            min-height: 56px;
+            padding: 0 12px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #444;
+            color: #fff;
+            transition: transform 0.12s ease, background-color 0.12s ease;
+        }
+
+        button:hover,
+        button:focus {
+            background: #666;
+            transform: translateY(-0.5px);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .operator { background: #ff9500; }
+        .equal { background: #28a745; grid-column: span 2; }
+        .clear { background: #dc3545; }
+
+        @media (max-width: 480px) {
+            #display { font-size: 22px; min-height: 52px; }
+            button { min-height: 48px; font-size: 14px; }
+            .calculator { padding: 16px; }
+        }
+    </style>
 </head>
 <body>
     <div class="calculator">
@@ -46,6 +117,67 @@
             <button onclick="calculate()" class="equal">=</button>
         </div>
     </div>
-    <script src="script.js" defer></script>
+    <script>
+        const display = document.getElementById('display');
+
+        function append(value) {
+            if (display.value === 'Error') display.value = '';
+            display.value += value;
+        }
+
+        function formatExpression(expr) {
+            return expr
+                .replace(/×/g, '*')
+                .replace(/÷/g, '/')
+                .replace(/π/g, 'Math.PI')
+                .replace(/\be\b/g, 'Math.E')
+                .replace(/%/g, '/100');
+        }
+
+        function clearDisplay() {
+            display.value = '';
+        }
+
+        function backspace() {
+            if (display.value === 'Error') {
+                display.value = '';
+                return;
+            }
+            display.value = display.value.slice(0, -1);
+        }
+
+        document.getElementById('clear').addEventListener('click', clearDisplay);
+        document.getElementById('backspace').addEventListener('click', backspace);
+
+        function calculate() {
+            if (!display.value) return;
+
+            try {
+                const expression = formatExpression(display.value);
+                const result = Function('Math', `return ${expression}`)(Math);
+
+                if (typeof result === 'number' && !Number.isFinite(result)) {
+                    display.value = 'Error';
+                } else {
+                    display.value = String(result);
+                }
+            } catch (err) {
+                console.error(err);
+                display.value = 'Error';
+            }
+        }
+
+        function insertFactorial() {
+            const value = parseFloat(display.value);
+            if (Number.isNaN(value) || value < 0 || !Number.isInteger(value)) {
+                display.value = 'Error';
+                return;
+            }
+
+            let result = 1;
+            for (let i = 1; i <= value; i++) result *= i;
+            display.value = String(result);
+        }
+    </script>
 </body>
 </html>
